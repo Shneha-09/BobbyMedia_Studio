@@ -1,0 +1,4 @@
+import {NextResponse} from 'next/server';import {connectDB} from '@/lib/db';import Enquiry from '@/models/Enquiry';import {verifyToken} from '@/lib/auth';
+function isAdmin(req){const token=req.cookies.get('admin_token')?.value;return token&&verifyToken(token)}
+export async function PATCH(req,{params}){try{if(!isAdmin(req))return NextResponse.json({error:'Unauthorized'},{status:401});await connectDB();const body=await req.json();const updated=await Enquiry.findByIdAndUpdate(params.id,body,{new:true});return NextResponse.json({success:true,enquiry:updated})}catch(error){return NextResponse.json({error:error.message},{status:500})}}
+export async function DELETE(req,{params}){try{if(!isAdmin(req))return NextResponse.json({error:'Unauthorized'},{status:401});await connectDB();await Enquiry.findByIdAndDelete(params.id);return NextResponse.json({success:true})}catch(error){return NextResponse.json({error:error.message},{status:500})}}

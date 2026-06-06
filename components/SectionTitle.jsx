@@ -1,0 +1,1 @@
+export default function SectionTitle({eyebrow,title,center=false}){return <div className={center?'text-center':'text-left'}><p className="mb-2 text-sm font-semibold uppercase tracking-[.35em] text-[#C9A84C]">{eyebrow}</p><h2 className="lux-title text-4xl text-white sm:text-6xl">{title}</h2></div>}
