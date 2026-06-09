@@ -11,15 +11,11 @@ export default function GalleryGrid() {
   const [cat, setCat] = useState('All');
   const [active, setActive] = useState(null);
 
-  const items =
-    cat === 'All'
-      ? gallery
-      : gallery.filter((i) => i.cat === cat);
+  const items = cat === 'All' ? gallery : gallery.filter((i) => i.cat === cat);
 
   return (
     <>
-      {/* Category Buttons */}
-      <div className="mb-8 flex flex-wrap justify-center gap-3">
+      <div className="mb-8 flex flex-wrap justify-center gap-3 px-4">
         {cats.map((c) => (
           <button
             key={c}
@@ -35,37 +31,37 @@ export default function GalleryGrid() {
         ))}
       </div>
 
-      {/* Square Gallery Grid */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5">
-        {items.map((item, i) => (
-          <button
-            key={`${item.title}-${i}`}
-            onClick={() => setActive(item)}
-            className="group overflow-hidden rounded-2xl bg-white shadow-md"
-          >
-            <div className="relative aspect-square w-full overflow-hidden">
-              <Image
-                src={item.img}
-                alt={item.title}
-                fill
-                sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 25vw"
-                className="object-cover transition duration-700 group-hover:scale-110"
-              />
-            </div>
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5">
+          {items.map((item, i) => (
+            <button
+              key={`${item.title}-${i}`}
+              onClick={() => setActive(item)}
+              className="group w-full overflow-hidden rounded-xl bg-white shadow-md sm:rounded-2xl"
+            >
+              <div className="relative aspect-square w-full overflow-hidden">
+                <Image
+                  src={item.img}
+                  alt={item.title}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover transition duration-700 group-hover:scale-110"
+                />
+              </div>
 
-            <div className="p-3">
-              <p className="text-xs text-[#C9A84C]">
-                {item.cat}
-              </p>
-              <h3 className="mt-1 text-sm font-semibold text-black">
-                {item.title}
-              </h3>
-            </div>
-          </button>
-        ))}
+              <div className="p-2 text-left sm:p-3">
+                <p className="text-[11px] text-[#C9A84C] sm:text-xs">
+                  {item.cat}
+                </p>
+                <h3 className="mt-1 text-xs font-semibold text-black sm:text-sm">
+                  {item.title}
+                </h3>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Image Popup */}
       {active && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/90 p-4">
           <button
