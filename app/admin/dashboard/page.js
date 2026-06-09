@@ -1,4 +1,67 @@
 'use client';
-import {useEffect,useState} from 'react';import {useRouter} from 'next/navigation';import {LogOut,Trash2} from 'lucide-react';
-const statuses=['New','Contacted','Booked','Rejected'];
-export default function Dashboard(){const [items,setItems]=useState([]);const [stats,setStats]=useState({});const [q,setQ]=useState('');const [status,setStatus]=useState('');const [eventCategory,setEventCategory]=useState('');const router=useRouter();async function load(){const p=new URLSearchParams();if(q)p.set('q',q);if(status)p.set('status',status);if(eventCategory)p.set('eventCategory',eventCategory);const res=await fetch('/api/enquiries?'+p.toString());if(res.status===401){router.push('/admin/login');return}const data=await res.json();setItems(data.enquiries||[]);setStats(data.stats||{})}useEffect(()=>{load()},[]);async function update(id,status){await fetch('/api/enquiries/'+id,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status})});load()}async function del(id){if(!confirm('Delete this enquiry?'))return;await fetch('/api/enquiries/'+id,{method:'DELETE'});load()}async function logout(){await fetch('/api/auth/logout',{method:'POST'});router.push('/admin/login')}return <main className="min-h-screen bg-[#050505] p-4 text-white sm:p-8"><div className="mx-auto max-w-7xl"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><p className="text-[#C9A84C]">Admin Dashboard</p><h1 className="text-5xl sm:text-6xl">Enquiries</h1></div><button onClick={logout} className="inline-flex items-center gap-2 rounded-full border border-white/10 px-5 py-3"><LogOut size={18}/>Logout</button></div><div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{[['Total Enquiries',stats.total],['New Enquiries',stats.new],['Contacted',stats.contacted],['Booked',stats.booked],['Rejected',stats.rejected]].map(([l,v])=><div key={l} className="glass rounded-3xl p-5"><p className="text-sm text-zinc-400">{l}</p><p className="mt-2 text-3xl font-black text-[#C9A84C]">{v??0}</p></div>)}</div><div className="glass mt-8 grid gap-3 rounded-3xl p-4 md:grid-cols-4"><input className="input" placeholder="Search name/mobile/email" value={q} onChange={e=>setQ(e.target.value)}/><select className="input" value={status} onChange={e=>setStatus(e.target.value)}><option className="text-black" value="">All Status</option>{statuses.map(s=><option className="text-black" key={s}>{s}</option>)}</select><select className="input" value={eventCategory} onChange={e=>setEventCategory(e.target.value)}><option className="text-black" value="">All Events</option>{['Wedding','Birthday','Other Events','Outdoor Photoshoot','Other Photo Services','Contact Form'].map(s=><option className="text-black" key={s}>{s}</option>)}</select><button onClick={load} className="btn-gold rounded-2xl">Apply</button></div><div className="mt-8 hidden overflow-x-auto rounded-3xl border border-white/10 lg:block"><table className="w-full min-w-[1000px] text-left text-sm"><thead className="bg-white/10"><tr>{['Name','Mobile','Email','Event','Wedding','Budget','Date','Status','Action'].map(h=><th key={h} className="p-4">{h}</th>)}</tr></thead><tbody>{items.map(i=><tr key={i._id} className="border-t border-white/10"><td className="p-4">{i.name}</td><td className="p-4">{i.mobile}</td><td className="p-4">{i.email}</td><td className="p-4">{i.eventCategory}</td><td className="p-4">{i.weddingType||'-'}</td><td className="p-4">{i.priceCategory}{i.customBudget?` (${i.customBudget})`:''}</td><td className="p-4">{new Date(i.createdAt).toLocaleDateString()}</td><td className="p-4"><select value={i.status} onChange={e=>update(i._id,e.target.value)} className="rounded-xl bg-black px-3 py-2">{statuses.map(s=><option key={s}>{s}</option>)}</select></td><td className="p-4"><button onClick={()=>del(i._id)} className="rounded-xl bg-red-500/20 p-2 text-red-200"><Trash2 size={18}/></button></td></tr>)}</tbody></table></div><div className="mt-8 grid gap-4 lg:hidden">{items.map(i=><div key={i._id} className="glass rounded-3xl p-5"><div className="flex justify-between gap-4"><div><h3 className="text-3xl">{i.name}</h3><p className="text-sm text-zinc-400">{i.mobile} · {i.email}</p></div><button onClick={()=>del(i._id)} className="text-red-300"><Trash2/></button></div><p className="mt-4 text-sm text-zinc-300">{i.eventCategory} · {i.weddingType||'-'} · {i.priceCategory}</p><select value={i.status} onChange={e=>update(i._id,e.target.value)} className="input mt-4">{statuses.map(s=><option className="text-black" key={s}>{s}</option>)}</select></div>)}</div></div></main>}
+
+import Link from 'next/link';
+import { Camera, ArrowRight, LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+export default function Dashboard() {
+  const router = useRouter();
+
+  async function logout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/admin/login');
+  }
+
+  return (
+    <main className="min-h-screen bg-[#f5f6f8] px-5 py-10 text-[#07142a]">
+      <div className="mx-auto max-w-7xl">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
+            <p className="mt-3 text-[#5f6b7a]">
+              Welcome back. Manage your studio photos below.
+            </p>
+          </div>
+
+          <button
+            onClick={logout}
+            className="inline-flex w-fit items-center gap-2 rounded-xl border border-[#dfe3ea] bg-white px-5 py-3 text-sm font-semibold shadow-sm hover:bg-[#07142a] hover:text-white"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
+        </div>
+
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <Link
+            href="/admin/photos"
+            className="group rounded-[28px] border border-[#dfe3ea] bg-white p-8 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+          >
+            <div className="flex items-start justify-between">
+              <div className="grid h-16 w-16 place-items-center rounded-2xl bg-blue-50 text-blue-600">
+                <Camera size={30} />
+              </div>
+
+              <div className="text-right">
+                <p className="text-4xl font-bold text-[#07142a]">0</p>
+                <p className="mt-1 text-sm text-[#8a95a3]">total</p>
+              </div>
+            </div>
+
+            <h2 className="mt-10 text-2xl font-bold">Photos</h2>
+
+            <p className="mt-4 max-w-sm leading-7 text-[#5f6b7a]">
+              Manage gallery images by category. Upload, edit and delete photos
+              for the frontend.
+            </p>
+
+            <div className="mt-8 inline-flex items-center gap-2 font-semibold text-[#5f6b7a] group-hover:text-[#07142a]">
+              Manage
+              <ArrowRight size={18} />
+            </div>
+          </Link>
+        </div>
+      </div>
+    </main>
+  );
+}
