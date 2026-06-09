@@ -98,13 +98,8 @@ export default function AdminPhotos() {
     setCategories(categories.filter((cat) => cat !== categoryName));
     setPhotos(photos.filter((photo) => photo.category !== categoryName));
 
-    if (active === categoryName) {
-      setActive('All');
-    }
-
-    if (selectedCategory === categoryName) {
-      setSelectedCategory('');
-    }
+    if (active === categoryName) setActive('All');
+    if (selectedCategory === categoryName) setSelectedCategory('');
   }
 
   async function addPhoto() {
@@ -200,17 +195,14 @@ export default function AdminPhotos() {
         </div>
 
         {showUpload && (
-          <div
-            id="upload-panel"
-            className="mt-8 ml-auto w-full max-w-[520px] rounded-2xl border border-[#07142a] bg-[#f5f2ea] p-6"
-          >
+          <div className="mt-8 ml-auto w-full max-w-[520px] rounded-2xl border border-[#07142a] bg-[#f5f2ea] p-6">
             <div className="mb-4 flex justify-end">
               <div className="flex overflow-hidden rounded-xl border border-[#c0c0c0] bg-white">
                 <button
                   onClick={() => setUploadMode('single')}
                   className={`px-8 py-2 text-sm font-semibold transition ${
                     uploadMode === 'single'
-                      ? 'bg-[#2f2f2f] text-black'
+                      ? 'bg-[#2f2f2f] text-white'
                       : 'bg-white text-[#333]'
                   }`}
                 >
@@ -221,7 +213,7 @@ export default function AdminPhotos() {
                   onClick={() => setUploadMode('bulk')}
                   className={`px-8 py-2 text-sm font-semibold transition ${
                     uploadMode === 'bulk'
-                      ? 'bg-[#2f2f2f] text-black'
+                      ? 'bg-[#2f2f2f] text-white'
                       : 'bg-white text-[#333]'
                   }`}
                 >
@@ -231,7 +223,7 @@ export default function AdminPhotos() {
             </div>
 
             <div className="mb-3 flex justify-end">
-              <div className="relative w-[240px]">
+              <div className="relative w-full sm:w-[240px]">
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
@@ -253,24 +245,22 @@ export default function AdminPhotos() {
             </div>
 
             {uploadMode === 'single' ? (
-              <div>
-                <label className="mb-3 flex w-[240px] cursor-pointer items-center gap-3 rounded-xl border border-[#e0e0e0] bg-white px-4 py-3 text-sm font-medium text-[#111]">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                  />
+              <label className="mb-3 flex w-full cursor-pointer items-center gap-3 rounded-xl border border-[#e0e0e0] bg-white px-4 py-3 text-sm font-medium text-[#111] sm:w-[240px]">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                />
 
-                  <span className="rounded-xl border border-[#d7d7d7] bg-[#f5f5f5] px-3 py-1">
-                    Choose File
-                  </span>
+                <span className="rounded-xl border border-[#d7d7d7] bg-[#f5f5f5] px-3 py-1">
+                  Choose File
+                </span>
 
-                  <span className="truncate text-[#555]">
-                    {selectedFile ? selectedFile.name : 'No file chosen'}
-                  </span>
-                </label>
-              </div>
+                <span className="truncate text-[#555]">
+                  {selectedFile ? selectedFile.name : 'No file chosen'}
+                </span>
+              </label>
             ) : (
               <div
                 ref={dropRef}
@@ -361,12 +351,12 @@ export default function AdminPhotos() {
           </div>
         )}
 
-        <div className="mt-8 flex flex-wrap gap-4">
+        <div className="mt-8 flex flex-wrap gap-3">
           {allCategories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActive(cat)}
-              className={`rounded-full border px-8 py-3 text-base font-medium transition ${
+              className={`rounded-full border px-5 py-2 text-sm font-medium transition sm:px-8 sm:py-3 sm:text-base ${
                 active === cat
                   ? 'border-[#07142a] bg-[#07142a] text-white'
                   : 'border-[#dfe3ea] bg-white text-[#111] hover:border-[#07142a]'
@@ -377,57 +367,23 @@ export default function AdminPhotos() {
           ))}
         </div>
 
-        <div
-          style={{
-            marginTop: '32px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
-            gap: '0px',
-            border: '1px solid #dfe3ea',
-            borderRadius: '12px',
-            background: '#ffffff',
-            overflow: 'visible',
-          }}
-        >
+        {/* Responsive Square Gallery */}
+        <div className="mt-8 grid grid-cols-2 gap-3 overflow-hidden rounded-xl border border-[#dfe3ea] bg-white sm:grid-cols-3 lg:grid-cols-4 lg:gap-4">
           {filtered.map((photo) => (
             <div
               key={photo.id}
-              style={{
-                position: 'relative',
-                height: '300px',
-                border: '1px solid #dfe3ea',
-                background: '#ffffff',
-              }}
+              className="relative aspect-square border border-[#dfe3ea] bg-white"
             >
               <img
                 src={photo.img}
                 alt={photo.category}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
+                className="h-full w-full object-cover"
               />
 
               <button
                 type="button"
                 onClick={() => deletePhoto(photo.id)}
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  zIndex: 999999,
-                  background: '#dc2626',
-                  color: '#ffffff',
-                  padding: '8px 12px',
-                  borderRadius: '6px',
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  border: 'none',
-                  cursor: 'pointer',
-                  boxShadow: '0 6px 12px rgba(0,0,0,0.3)',
-                }}
+                className="absolute right-2 top-2 z-10 rounded-md bg-red-600 px-3 py-2 text-xs font-bold text-white shadow-lg"
               >
                 ❌
               </button>
