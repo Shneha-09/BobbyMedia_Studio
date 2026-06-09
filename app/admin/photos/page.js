@@ -1,11 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { Folder, Plus, X } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Folder, Plus } from 'lucide-react';
 
-const categories = [
-  'All',
+const initialCategories = [
   'Wedding',
   'Wedding Cinematography',
   'Birthday Photography',
@@ -16,102 +15,361 @@ const categories = [
   'Other Photo Services',
 ];
 
-const photos = [
-  { category: 'Birthday Photography', img: '/images/gallery/birthday.jpg' },
-  { category: 'Wedding', img: '/images/gallery/bride.jpg' },
-  { category: 'Outdoor Photoshoot', img: '/images/gallery/outdoor.jpg' },
-  { category: 'Wedding Cinematography', img: '/images/gallery/wedding cine.jpg' },
-  { category: 'Event Photography', img: '/images/gallery/event.jpg' },
-  { category: 'Drone Photography', img: '/images/gallery/drone.jpg' },
-  { category: 'Other Photo Services', img: '/images/gallery/other servies.jpg' },
+const initialPhotos = [
+  { id: 1, category: 'Birthday Photography', img: '/images/gallery/birthday.jpg' },
+  { id: 2, category: 'Wedding', img: '/images/gallery/bride.jpg' },
+  { id: 3, category: 'Outdoor Photoshoot', img: '/images/gallery/outdoor.jpg' },
+  { id: 4, category: 'Wedding Cinematography', img: '/images/gallery/wedding cine.jpg' },
+  { id: 5, category: 'Event Photography', img: '/images/gallery/event.jpg' },
+  { id: 6, category: 'Drone Photography', img: '/images/gallery/drone.jpg' },
+  { id: 7, category: 'Album Design', img: '/images/services/album.png' },
+  { id: 8, category: 'Other Photo Services', img: '/images/gallery/other servies.jpg' },
 ];
 
 export default function AdminPhotos() {
+  const [categories, setCategories] = useState(initialCategories);
+  const [photos, setPhotos] = useState(initialPhotos);
   const [active, setActive] = useState('All');
+  const [showUpload, setShowUpload] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
-  const [showAdd, setShowAdd] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
+  const [uploadMode, setUploadMode] = useState('single');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [bulkFiles, setBulkFiles] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const dropRef = useRef(null);
+
+  const allCategories = ['All', ...categories];
 
   const filtered =
     active === 'All' ? photos : photos.filter((p) => p.category === active);
 
+  useEffect(() => {
+    async function fetchPhotos() {
+      try {
+        const res = await fetch('/api/photos');
+        const data = await res.json();
+
+        if (data.success) {
+          const dbPhotos = data.photos.map((photo) => ({
+            id: photo._id,
+            category: photo.category,
+            img: photo.imageUrl,
+          }));
+
+          setPhotos([...dbPhotos, ...initialPhotos]);
+        }
+      } catch (error) {
+        console.error('Fetch photos error:', error);
+      }
+    }
+
+    fetchPhotos();
+  }, []);
+
+  function handleDrop(e) {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files).filter((f) =>
+      f.type.startsWith('image/')
+    );
+
+    setBulkFiles(files);
+  }
+
+  function addCategory() {
+    const trimmedCategory = newCategory.trim();
+
+    if (!trimmedCategory) return alert('Please enter category name');
+
+    if (categories.includes(trimmedCategory)) {
+      return alert('Category already exists');
+    }
+
+    setCategories([...categories, trimmedCategory]);
+    setNewCategory('');
+  }
+
+  function deleteCategory(categoryName) {
+    if (!confirm(`Delete ${categoryName}?`)) return;
+
+    setCategories(categories.filter((cat) => cat !== categoryName));
+    setPhotos(photos.filter((photo) => photo.category !== categoryName));
+
+    if (active === categoryName) {
+      setActive('All');
+    }
+
+    if (selectedCategory === categoryName) {
+      setSelectedCategory('');
+    }
+  }
+
+  async function addPhoto() {
+    if (!selectedCategory) return alert('Please select a category');
+
+    const files = uploadMode === 'single' ? [selectedFile] : bulkFiles;
+
+    if (!files.length || !files[0]) {
+      return alert('Please choose photo');
+    }
+
+    const uploadedPhotos = [];
+
+    for (const file of files) {
+      const formData = new FormData();
+      formData.append('category', selectedCategory);
+      formData.append('file', file);
+
+      const res = await fetch('/api/photos', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        uploadedPhotos.push({
+          id: data.photo._id,
+          category: data.photo.category,
+          img: data.photo.imageUrl,
+        });
+      }
+    }
+
+    setPhotos([...uploadedPhotos, ...photos]);
+    setActive(selectedCategory);
+    setSelectedCategory('');
+    setSelectedFile(null);
+    setBulkFiles([]);
+  }
+
+  async function deletePhoto(id) {
+    if (!confirm('Delete this photo?')) return;
+
+    if (typeof id === 'number') {
+      setPhotos(photos.filter((p) => p.id !== id));
+      return;
+    }
+
+    const res = await fetch(`/api/photos?id=${id}`, {
+      method: 'DELETE',
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setPhotos(photos.filter((p) => p.id !== id));
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#f5f6f8] px-4 py-8 text-[#07142a]">
       <div className="mx-auto max-w-7xl">
-        <div className="relative border-b border-[#dfe3ea] pb-6">
-          <div className="hidden md:block">
-            <div className="absolute left-0 top-0">
-              <Link
-                href="/admin/dashboard"
-                className="rounded-xl bg-white px-6 py-3 font-semibold shadow-sm"
-              >
-                ← Back
-              </Link>
-            </div>
+        <div className="flex flex-col gap-5 border-b border-[#dfe3ea] pb-6 md:flex-row md:items-center md:justify-between">
+          <Link
+            href="/admin/dashboard"
+            className="w-fit rounded-xl border border-[#dfe3ea] bg-white px-5 py-3 text-sm font-semibold text-[#111] shadow-sm"
+          >
+            ← Back
+          </Link>
 
-            <h1 className="text-center text-3xl font-bold tracking-[0.45em]">
-              PHOTOS
-            </h1>
+          <h1 className="text-center text-2xl font-bold tracking-[0.35em] text-[#111]">
+            PHOTOS
+          </h1>
 
-            <div className="absolute right-0 top-0 flex gap-3">
-              <button
-                onClick={() => setShowCategories(true)}
-                className="inline-flex items-center gap-2 rounded-xl border border-[#dfe3ea] bg-white px-5 py-3 font-semibold shadow-sm"
-              >
-                <Folder size={18} />
-                Categories
-              </button>
+          <div className="flex flex-wrap justify-center gap-3 md:justify-end">
+            <button
+              onClick={() => setShowCategories(!showCategories)}
+              className="inline-flex items-center gap-2 rounded-xl border border-[#dfe3ea] bg-white px-5 py-3 text-sm font-semibold text-[#111] shadow-sm"
+            >
+              <Folder size={16} />
+              Categories
+            </button>
 
-              <button
-                onClick={() => setShowAdd(true)}
-                className="inline-flex items-center gap-2 rounded-xl border border-green-700 bg-[#eaf4ee] px-5 py-3 font-semibold text-green-700 shadow-sm"
-              >
-                <Plus size={18} />
-                Add Photo
-              </button>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 md:hidden">
-            <h1 className="text-center text-2xl font-bold tracking-[0.35em]">
-              PHOTOS
-            </h1>
-
-            <div className="flex flex-wrap justify-center gap-3">
-              <Link
-                href="/admin/dashboard"
-                className="rounded-xl bg-white px-5 py-3 font-semibold shadow-sm"
-              >
-                ← Back
-              </Link>
-
-              <button
-                onClick={() => setShowCategories(true)}
-                className="inline-flex items-center gap-2 rounded-xl border border-[#dfe3ea] bg-white px-5 py-3 font-semibold shadow-sm"
-              >
-                <Folder size={18} />
-                Categories
-              </button>
-
-              <button
-                onClick={() => setShowAdd(true)}
-                className="inline-flex items-center gap-2 rounded-xl border border-green-700 bg-[#eaf4ee] px-5 py-3 font-semibold text-green-700 shadow-sm"
-              >
-                <Plus size={18} />
-                Add Photo
-              </button>
-            </div>
+            <button
+              onClick={() => setShowUpload(!showUpload)}
+              className="inline-flex items-center gap-2 rounded-xl border border-green-700 bg-[#eaf4ee] px-5 py-3 text-sm font-semibold text-green-700 shadow-sm"
+            >
+              <Plus size={16} />
+              Add Photo
+            </button>
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          {categories.map((cat) => (
+        {showUpload && (
+          <div
+            id="upload-panel"
+            className="mt-8 ml-auto w-full max-w-[520px] rounded-2xl border border-[#07142a] bg-[#f5f2ea] p-6"
+          >
+            <div className="mb-4 flex justify-end">
+              <div className="flex overflow-hidden rounded-xl border border-[#c0c0c0] bg-white">
+                <button
+                  onClick={() => setUploadMode('single')}
+                  className={`px-8 py-2 text-sm font-semibold transition ${
+                    uploadMode === 'single'
+                      ? 'bg-[#2f2f2f] text-black'
+                      : 'bg-white text-[#333]'
+                  }`}
+                >
+                  Single Upload
+                </button>
+
+                <button
+                  onClick={() => setUploadMode('bulk')}
+                  className={`px-8 py-2 text-sm font-semibold transition ${
+                    uploadMode === 'bulk'
+                      ? 'bg-[#2f2f2f] text-black'
+                      : 'bg-white text-[#333]'
+                  }`}
+                >
+                  Bulk Upload
+                </button>
+              </div>
+            </div>
+
+            <div className="mb-3 flex justify-end">
+              <div className="relative w-[240px]">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="h-11 w-full appearance-none rounded-xl border border-[#e0e0e0] bg-white px-4 pr-10 text-sm text-[#111] outline-none"
+                >
+                  <option value="">Select category</option>
+
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#555]">
+                  ▾
+                </span>
+              </div>
+            </div>
+
+            {uploadMode === 'single' ? (
+              <div>
+                <label className="mb-3 flex w-[240px] cursor-pointer items-center gap-3 rounded-xl border border-[#e0e0e0] bg-white px-4 py-3 text-sm font-medium text-[#111]">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                  />
+
+                  <span className="rounded-xl border border-[#d7d7d7] bg-[#f5f5f5] px-3 py-1">
+                    Choose File
+                  </span>
+
+                  <span className="truncate text-[#555]">
+                    {selectedFile ? selectedFile.name : 'No file chosen'}
+                  </span>
+                </label>
+              </div>
+            ) : (
+              <div
+                ref={dropRef}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={handleDrop}
+                onClick={() => dropRef.current?.querySelector('input')?.click()}
+                className={`mb-3 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-10 text-center transition ${
+                  isDragging
+                    ? 'border-[#07142a] bg-[#f0f4ff]'
+                    : 'border-[#b8b8b8] bg-white'
+                }`}
+              >
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => setBulkFiles(Array.from(e.target.files || []))}
+                />
+
+                <p className="text-sm font-medium text-[#555]">
+                  📁 Click or drag &amp; drop images here
+                </p>
+
+                <p className="text-xs text-[#777]">
+                  {bulkFiles.length > 0
+                    ? `${bulkFiles.length} images selected`
+                    : '0 images selected'}
+                </p>
+              </div>
+            )}
+
+            <button
+              onClick={addPhoto}
+              className="rounded-xl border border-[#c0c0c0] bg-[#f8f8f8] px-8 py-2 text-sm font-medium text-[#111] hover:bg-white"
+            >
+              Upload
+            </button>
+          </div>
+        )}
+
+        {showCategories && (
+          <div className="mt-8 rounded-2xl border border-[#dfe3ea] bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-lg font-bold text-[#111]">
+              Manage Categories
+            </h2>
+
+            <div className="mb-5 flex flex-wrap gap-3">
+              <input
+                type="text"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                placeholder="Enter new category"
+                className="h-11 w-full max-w-[320px] rounded-xl border border-[#dfe3ea] bg-white px-4 text-sm outline-none"
+              />
+
+              <button
+                onClick={addCategory}
+                className="rounded-xl border border-green-700 bg-[#eaf4ee] px-5 py-2 text-sm font-semibold text-green-700"
+              >
+                Add Category
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {categories.map((cat) => (
+                <div
+                  key={cat}
+                  className="flex items-center gap-3 rounded-full border border-[#dfe3ea] bg-[#f8f8f8] px-4 py-2"
+                >
+                  <span className="text-sm font-medium text-[#111]">
+                    {cat}
+                  </span>
+
+                  <button
+                    onClick={() => deleteCategory(cat)}
+                    className="rounded-full bg-red-600 px-2 py-1 text-xs text-white"
+                  >
+                    ❌
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-8 flex flex-wrap gap-4">
+          {allCategories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActive(cat)}
-              className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${
+              className={`rounded-full border px-8 py-3 text-base font-medium transition ${
                 active === cat
                   ? 'border-[#07142a] bg-[#07142a] text-white'
-                  : 'border-[#07142a] bg-white text-[#07142a] hover:bg-[#07142a] hover:text-white'
+                  : 'border-[#dfe3ea] bg-white text-[#111] hover:border-[#07142a]'
               }`}
             >
               {cat}
@@ -119,88 +377,63 @@ export default function AdminPhotos() {
           ))}
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-0 overflow-hidden rounded-xl border border-[#dfe3ea] bg-white sm:grid-cols-3 lg:grid-cols-5">
-          {filtered.map((photo, index) => (
+        <div
+          style={{
+            marginTop: '32px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+            gap: '0px',
+            border: '1px solid #dfe3ea',
+            borderRadius: '12px',
+            background: '#ffffff',
+            overflow: 'visible',
+          }}
+        >
+          {filtered.map((photo) => (
             <div
-              key={index}
-              className="h-[120px] overflow-hidden border border-[#dfe3ea] sm:h-[150px] lg:h-[170px]"
+              key={photo.id}
+              style={{
+                position: 'relative',
+                height: '300px',
+                border: '1px solid #dfe3ea',
+                background: '#ffffff',
+              }}
             >
               <img
                 src={photo.img}
                 alt={photo.category}
-                className="h-full w-full object-cover"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
               />
+
+              <button
+                type="button"
+                onClick={() => deletePhoto(photo.id)}
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  right: '10px',
+                  zIndex: 999999,
+                  background: '#dc2626',
+                  color: '#ffffff',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 6px 12px rgba(0,0,0,0.3)',
+                }}
+              >
+                ❌
+              </button>
             </div>
           ))}
         </div>
-
-        {filtered.length === 0 && (
-          <p className="mt-16 text-center text-[#5f6b7a]">
-            No photos found in this category.
-          </p>
-        )}
-
-        {showCategories && (
-          <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 px-4">
-            <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-xl">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Categories</h2>
-                <button onClick={() => setShowCategories(false)}>
-                  <X />
-                </button>
-              </div>
-
-              <div className="mt-6 grid gap-3">
-                {categories
-                  .filter((c) => c !== 'All')
-                  .map((cat) => (
-                    <div
-                      key={cat}
-                      className="flex items-center justify-between rounded-xl border border-[#dfe3ea] p-4"
-                    >
-                      <span>{cat}</span>
-                      <button className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-                        Delete
-                      </button>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showAdd && (
-          <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 px-4">
-            <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-xl">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Add Photo</h2>
-                <button onClick={() => setShowAdd(false)}>
-                  <X />
-                </button>
-              </div>
-
-              <div className="mt-6 space-y-4">
-                <select className="w-full rounded-xl border border-[#dfe3ea] px-4 py-3">
-                  <option>Select Category</option>
-                  {categories
-                    .filter((c) => c !== 'All')
-                    .map((cat) => (
-                      <option key={cat}>{cat}</option>
-                    ))}
-                </select>
-
-                <input
-                  type="file"
-                  className="w-full rounded-xl border border-[#dfe3ea] px-4 py-3"
-                />
-
-                <button className="w-full rounded-xl bg-[#07142a] px-5 py-3 font-bold text-white">
-                  Upload Photo
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </main>
   );
