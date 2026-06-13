@@ -2,20 +2,9 @@ import mongoose from 'mongoose';
 
 const PhotoSchema = new mongoose.Schema(
   {
-    category: {
-      type: String,
-      required: true,
-    },
-
-    imageUrl: {
-      type: String,
-      required: true,
-    },
-
-    publicId: {
-      type: String,
-      required: true,
-    },
+    category: String,
+    imageUrl: String,
+    publicId: String,
   },
   {
     timestamps: true,

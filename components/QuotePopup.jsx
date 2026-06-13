@@ -84,6 +84,27 @@ export default function QuotePopup() {
 
     if (res.ok) {
       setSuccess('Thank you! We will contact you soon.');
+
+      const whatsappNumber = '917373402224';
+
+      const message = `
+New Quote Enquiry
+
+Name: ${form.name}
+Mobile: ${form.mobile}
+Email: ${form.email}
+Event: ${form.eventCategory}
+Wedding Type: ${form.weddingType || '-'}
+Budget: ${form.priceCategory}
+Custom Budget: ${form.customBudget || '-'}
+      `;
+
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
+        message
+      )}`;
+
+      window.open(whatsappUrl, '_blank');
+
       setTimeout(() => setOpen(false), 1500);
     } else {
       alert((await res.json()).error || 'Something went wrong');

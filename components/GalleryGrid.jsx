@@ -1,17 +1,52 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { X } from 'lucide-react';
 import { gallery } from './data';
 
-const cats = ['All', 'Wedding', 'Birthday', 'Outdoor', 'Events', 'Other Services'];
+const cats = [
+  'All',
+  'Wedding',
+  'Wedding Cinematography',
+  'Birthday Photography',
+  'Outdoor Photoshoot',
+  'Event Photography',
+  'Drone Photography',
+  'Album Design',
+  'Other Photo Services',
+];
 
 export default function GalleryGrid() {
   const [cat, setCat] = useState('All');
   const [active, setActive] = useState(null);
+  const [items, setItems] = useState(gallery);
 
-  const items = cat === 'All' ? gallery : gallery.filter((i) => i.cat === cat);
+  useEffect(() => {
+    async function fetchPhotos() {
+      try {
+        const res = await fetch('/api/photos');
+        const data = await res.json();
+
+        if (data.success) {
+          const uploadedPhotos = data.photos.map((photo) => ({
+            title: photo.category,
+            cat: photo.category,
+            img: photo.imageUrl,
+          }));
+
+          setItems([...uploadedPhotos, ...gallery]);
+        }
+      } catch (error) {
+        console.error('Gallery photos fetch error:', error);
+      }
+    }
+
+    fetchPhotos();
+  }, []);
+
+  const filteredItems =
+    cat === 'All' ? items : items.filter((item) => item.cat === cat);
 
   return (
     <>
@@ -33,9 +68,9 @@ export default function GalleryGrid() {
 
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5">
-          {items.map((item, i) => (
+          {filteredItems.map((item, i) => (
             <button
-              key={`${item.title}-${i}`}
+              key={`${item.img}-${i}`}
               onClick={() => setActive(item)}
               className="group w-full overflow-hidden rounded-xl bg-white shadow-md sm:rounded-2xl"
             >
@@ -49,14 +84,7 @@ export default function GalleryGrid() {
                 />
               </div>
 
-              <div className="p-2 text-left sm:p-3">
-                <p className="text-[11px] text-[#C9A84C] sm:text-xs">
-                  {item.cat}
-                </p>
-                <h3 className="mt-1 text-xs font-semibold text-black sm:text-sm">
-                  {item.title}
-                </h3>
-              </div>
+             
             </button>
           ))}
         </div>

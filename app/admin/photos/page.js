@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { Folder, Plus } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
 
 const initialCategories = [
   'Wedding',
@@ -38,6 +39,7 @@ export default function AdminPhotos() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [bulkFiles, setBulkFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const dropRef = useRef(null);
 
   const allCategories = ['All', ...categories];
@@ -58,7 +60,7 @@ export default function AdminPhotos() {
             img: photo.imageUrl,
           }));
 
-          setPhotos([...dbPhotos, ...initialPhotos]);
+          setPhotos(dbPhotos);
         }
       } catch (error) {
         console.error('Fetch photos error:', error);
@@ -105,40 +107,62 @@ export default function AdminPhotos() {
   async function addPhoto() {
     if (!selectedCategory) return alert('Please select a category');
 
-    const files = uploadMode === 'single' ? [selectedFile] : bulkFiles;
+    const files =
+      uploadMode === 'single'
+        ? selectedFile
+          ? [selectedFile]
+          : []
+        : bulkFiles;
 
-    if (!files.length || !files[0]) {
+    if (files.length === 0) {
       return alert('Please choose photo');
     }
 
+    setUploading(true);
     const uploadedPhotos = [];
 
-    for (const file of files) {
-      const formData = new FormData();
-      formData.append('category', selectedCategory);
-      formData.append('file', file);
+    try {
+      for (const file of files) {
+        const compressedFile = await imageCompression(file, {
+          maxSizeMB: 3,
+          maxWidthOrHeight: 1920,
+          useWebWorker: true,
+        });
 
-      const res = await fetch('/api/photos', {
-        method: 'POST',
-        body: formData,
-      });
+        const formData = new FormData();
+        formData.append('category', selectedCategory);
+        formData.append('file', compressedFile);
 
-      const data = await res.json();
+        const res = await fetch('/api/photos', {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (data.success) {
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Upload failed');
+        }
+
         uploadedPhotos.push({
           id: data.photo._id,
           category: data.photo.category,
           img: data.photo.imageUrl,
         });
       }
-    }
 
-    setPhotos([...uploadedPhotos, ...photos]);
-    setActive(selectedCategory);
-    setSelectedCategory('');
-    setSelectedFile(null);
-    setBulkFiles([]);
+      setPhotos((prev) => [...uploadedPhotos, ...prev]);
+      setActive(selectedCategory);
+      setSelectedCategory('');
+      setSelectedFile(null);
+      setBulkFiles([]);
+      alert('Photo uploaded successfully');
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert(error.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function deletePhoto(id) {
@@ -299,9 +323,10 @@ export default function AdminPhotos() {
 
             <button
               onClick={addPhoto}
-              className="rounded-xl border border-[#c0c0c0] bg-[#f8f8f8] px-8 py-2 text-sm font-medium text-[#111] hover:bg-white"
+              disabled={uploading}
+              className="rounded-xl border border-[#c0c0c0] bg-[#f8f8f8] px-8 py-2 text-sm font-medium text-[#111] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Upload
+              {uploading ? 'Uploading...' : 'Upload'}
             </button>
           </div>
         )}
@@ -367,7 +392,6 @@ export default function AdminPhotos() {
           ))}
         </div>
 
-        {/* Responsive Square Gallery */}
         <div className="mt-8 grid grid-cols-2 gap-3 overflow-hidden rounded-xl border border-[#dfe3ea] bg-white sm:grid-cols-3 lg:grid-cols-4 lg:gap-4">
           {filtered.map((photo) => (
             <div
