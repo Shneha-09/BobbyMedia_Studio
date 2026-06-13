@@ -14,7 +14,7 @@ export default function Contact() {
 
   const map = process.env.NEXT_PUBLIC_MAP_URL;
   const insta = process.env.NEXT_PUBLIC_INSTAGRAM_URL;
-  const wa = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '918148645508';
+  const wa = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '917373402224';
 
   async function submit(e) {
     e.preventDefault();
@@ -115,7 +115,7 @@ export default function Contact() {
               </a>
 
               <a
-                href="tel:+918148645508"
+                href="tel:+917373402224"
                 className="flex items-center gap-3 rounded-2xl border border-[#d8cbbd] bg-white p-4 text-[#1f1a17] transition hover:border-[#b89b63]"
               >
                 <Phone className="text-[#C9A84C]" />
