@@ -35,9 +35,7 @@ export default function HomePage() {
               </p>
 
               <h2 className="serif text-4xl leading-[0.98] text-white sm:text-6xl lg:text-8xl">
-                Capturing Moments,
-                <br />
-                Creating Stories.
+                Choose Happiness 
               </h2>
 
               <div className="my-6 h-[1px] w-16 bg-[#d4b06a]" />

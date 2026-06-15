@@ -5,24 +5,57 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, Sparkles, Check } from 'lucide-react';
 
 const events = [
-  'Wedding',
-  'Birthday',
-  'Other Events',
-  'Outdoor Photoshoot',
-  'Other Photo Services',
+  'Wedding Ceremony',
+  'Baby Shoots',
+  'Outdoor Pre/Post Shoot',
+  'Birthday Parties',
+  'Baby Shower',
 ];
 
-const weddings = [
+const weddingTypes = [
   'Hindu Wedding',
   'Christian Wedding',
   'Muslim Wedding',
-  'Other Wedding Types',
+  'Destination Wedding',
 ];
 
-const budgets = [
-  '₹15,000',
-  '₹20,000',
+const ceremonyTypes = [
+  'Flowering Ceremony',
+  'Engagement Ceremony',
+  'Engagement, Wedding & Reception',
+  'Above All',
+];
+
+const destinationDays = ['Two Days', 'Three Days', 'Four Days'];
+
+const normalBudgets = [
   '₹25,000',
+  '₹35,000',
+  '₹50,000',
+  '₹65,000',
+  'Custom Budget',
+];
+
+const fullWeddingBudgets = [
+  '₹50,000',
+  '₹85,000',
+  '₹1.2L+',
+  '₹1.5L+',
+  'Custom Budget',
+];
+
+const destinationBudgets = [
+  'Below ₹2L',
+  'Below ₹2.5L',
+  'Below ₹3L',
+  'Below ₹3.5L',
+  'Custom Budget',
+];
+
+const otherEventBudgets = [
+  '₹15,000',
+  '₹25,000',
+  '₹35,000',
   '₹50,000',
   'Custom Budget',
 ];
@@ -36,6 +69,8 @@ export default function QuotePopup() {
   const [form, setForm] = useState({
     eventCategory: '',
     weddingType: '',
+    ceremonyType: '',
+    destinationDays: '',
     priceCategory: '',
     customBudget: '',
     name: '',
@@ -48,19 +83,36 @@ export default function QuotePopup() {
     return () => clearTimeout(t);
   }, []);
 
+  function getBudgets() {
+    if (form.weddingType === 'Destination Wedding') return destinationBudgets;
+    if (form.ceremonyType === 'Engagement, Wedding & Reception') {
+      return fullWeddingBudgets;
+    }
+    if (form.eventCategory === 'Wedding Ceremony') return normalBudgets;
+    return otherEventBudgets;
+  }
+
   function choose(key, value) {
     setForm((f) => ({ ...f, [key]: value }));
 
     if (key === 'eventCategory') {
-      setStep(value === 'Wedding' ? 2 : 3);
+      setStep(value === 'Wedding Ceremony' ? 2 : 4);
     }
 
     if (key === 'weddingType') {
-      setStep(3);
+      setStep(value === 'Destination Wedding' ? 6 : 3);
+    }
+
+    if (key === 'ceremonyType') {
+      setStep(4);
+    }
+
+    if (key === 'destinationDays') {
+      setStep(4);
     }
 
     if (key === 'priceCategory') {
-      setStep(4);
+      setStep(5);
     }
   }
 
@@ -95,15 +147,16 @@ Mobile: ${form.mobile}
 Email: ${form.email}
 Event: ${form.eventCategory}
 Wedding Type: ${form.weddingType || '-'}
+Ceremony Type: ${form.ceremonyType || '-'}
+Destination Days: ${form.destinationDays || '-'}
 Budget: ${form.priceCategory}
 Custom Budget: ${form.customBudget || '-'}
       `;
 
-      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-        message
-      )}`;
-
-      window.open(whatsappUrl, '_blank');
+      window.open(
+        `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
+        '_blank'
+      );
 
       setTimeout(() => setOpen(false), 1500);
     } else {
@@ -152,11 +205,6 @@ Custom Budget: ${form.customBudget || '-'}
               <h2 className="serif text-4xl italic leading-tight sm:text-5xl">
                 Plan your event
               </h2>
-
-              <p className="mt-3 max-w-md text-sm leading-6 text-[#6b625a]">
-                Choose your event type and budget. Our team will contact you
-                with the best package.
-              </p>
             </div>
 
             {success && (
@@ -172,7 +220,7 @@ Custom Budget: ${form.customBudget || '-'}
                   <button
                     key={item}
                     onClick={() => choose('eventCategory', item)}
-                    className="rounded-2xl border border-[#d8cbbd] bg-white p-5 text-left text-base font-semibold text-[#1f1a17] shadow-sm transition hover:-translate-y-1 hover:border-[#b89b63] hover:bg-[#fff8ed]"
+                    className="rounded-2xl border border-[#d8cbbd] bg-white p-5 text-left font-semibold shadow-sm"
                   >
                     {item}
                   </button>
@@ -182,11 +230,11 @@ Custom Budget: ${form.customBudget || '-'}
 
             {step === 2 && (
               <div className="grid gap-3 sm:grid-cols-2">
-                {weddings.map((item) => (
+                {weddingTypes.map((item) => (
                   <button
                     key={item}
                     onClick={() => choose('weddingType', item)}
-                    className="rounded-2xl border border-[#d8cbbd] bg-white p-5 text-left text-base font-semibold text-[#1f1a17] shadow-sm transition hover:-translate-y-1 hover:border-[#b89b63] hover:bg-[#fff8ed]"
+                    className="rounded-2xl border border-[#d8cbbd] bg-white p-5 text-left font-semibold shadow-sm"
                   >
                     {item}
                   </button>
@@ -196,11 +244,25 @@ Custom Budget: ${form.customBudget || '-'}
 
             {step === 3 && (
               <div className="grid gap-3 sm:grid-cols-2">
-                {budgets.map((item) => (
+                {ceremonyTypes.map((item) => (
                   <button
                     key={item}
-                    onClick={() => choose('priceCategory', item)}
-                    className="rounded-2xl border border-[#d8cbbd] bg-white p-5 text-left text-base font-semibold text-[#1f1a17] shadow-sm transition hover:-translate-y-1 hover:border-[#b89b63] hover:bg-[#fff8ed]"
+                    onClick={() => choose('ceremonyType', item)}
+                    className="rounded-2xl border border-[#d8cbbd] bg-white p-5 text-left font-semibold shadow-sm"
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {step === 6 && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {destinationDays.map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => choose('destinationDays', item)}
+                    className="rounded-2xl border border-[#d8cbbd] bg-white p-5 text-left font-semibold shadow-sm"
                   >
                     {item}
                   </button>
@@ -209,6 +271,20 @@ Custom Budget: ${form.customBudget || '-'}
             )}
 
             {step === 4 && (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {getBudgets().map((item) => (
+                  <button
+                    key={item}
+                    onClick={() => choose('priceCategory', item)}
+                    className="rounded-2xl border border-[#d8cbbd] bg-white p-5 text-left font-semibold shadow-sm"
+                  >
+                    {item}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {step === 5 && (
               <form onSubmit={submit} className="space-y-4">
                 {form.priceCategory === 'Custom Budget' && (
                   <input
@@ -225,9 +301,7 @@ Custom Budget: ${form.customBudget || '-'}
                   className="input"
                   placeholder="Name"
                   value={form.name}
-                  onChange={(e) =>
-                    setForm({ ...form, name: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
 
                 <input
@@ -243,9 +317,7 @@ Custom Budget: ${form.customBudget || '-'}
                   className="input"
                   placeholder="Email Address"
                   value={form.email}
-                  onChange={(e) =>
-                    setForm({ ...form, email: e.target.value })
-                  }
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
                 />
 
                 <button
