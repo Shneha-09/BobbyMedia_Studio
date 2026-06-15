@@ -14,7 +14,6 @@ export const services = [
  {title:'Birthday Photography',price:'From ₹15,000',img:'/images/gallery/birth pho1.jpg',desc:'Creative birthday event coverage for kids, families and celebrations.'},
  {title:'Outdoor Photoshoot',price:'From ₹20,000',img:'/images/services/outdoor photoshoot.jpg',desc:'Pre-wedding, couple, maternity and portfolio outdoor sessions.'},
  {title:'Event Photography',price:'From ₹25,000',img:'/images/services/eventphotography.jpg',desc:'Corporate, cultural, family and private event photography services.'},
- {title:'Drone Photography',price:'Custom',img:'/images/services/drone.jpg',desc:'Premium aerial shots and cinematic drone coverage for events.'},
  {title:'Album Design',price:'Custom',img:'/images/services/album.png',desc:'Premium handcrafted album layouts, retouching and print-ready design.'}
 ];
 export const why = ['Professional Team','Creative Editing','Premium Albums','Fast Delivery','Affordable Packages','Drone Coverage'];

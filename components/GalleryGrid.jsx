@@ -11,8 +11,9 @@ const cats = [
   'Wedding Cinematography',
   'Birthday Photography',
   'Outdoor Photoshoot',
-  'Event Photography',
-  'Drone Photography',
+  'Fashion',
+  'Puberty',
+  'Baby Shower',
   'Album Design',
   'Other Photo Services',
 ];
