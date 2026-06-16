@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -25,14 +26,30 @@ export default function Header({ onQuoteClick }) {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/45 backdrop-blur-xl">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <Link href="/" onClick={() => setOpen(false)} className="leading-none">
-          <span className="block font-serif text-xl font-bold tracking-[0.12em] text-white sm:text-2xl">
-            BOBBY MEDIA
-          </span>
-          <span className="mt-1 block text-[10px] uppercase tracking-[0.42em] text-[#C9A84C]">
-            Photo Studio
-          </span>
-        </Link>
+        <Link
+  href="/"
+  onClick={() => setOpen(false)}
+  className="flex items-center gap-4"
+>
+  <Image
+    src="/images/logo/logo.jpeg"
+    alt="Bobby Media"
+    width={70}
+    height={70}
+    priority
+    className="h-16 w-16 rounded-full object-cover border-2 border-[#C9A84C]"
+  />
+
+  <div className="leading-none">
+    <h1 className="font-serif text-lg font-bold tracking-[0.12em] text-white sm:text-2xl">
+      BOBBY MEDIA
+    </h1>
+
+    <p className="mt-1 text-[10px] uppercase tracking-[0.42em] text-[#C9A84C]">
+      PHOTO STUDIO
+    </p>
+  </div>
+</Link>
 
         <div className="hidden items-center gap-7 lg:flex">
           {links.map(([label, href]) => (

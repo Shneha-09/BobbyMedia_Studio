@@ -3,21 +3,29 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Camera, Phone, Heart, Video, Cake, Mountain, Plane } from 'lucide-react';
+import { Camera, Phone } from 'lucide-react';
 import Header from './Header';
 import QuotePopup from './QuotePopup';
 import MotionWrap from './MotionWrap';
-import { gallery, services } from './data';
+import FeaturedWorksSlider from './FeaturedWorksSlider';
+import { services } from './data';
 
 export default function HomePage() {
   const [quoteOpen, setQuoteOpen] = useState(true);
 
   return (
     <main className="bg-[#f8f5f1] text-[#1f1a17]">
-      <Header onQuoteClick={() => setQuoteOpen(true)} />      <QuotePopup open={quoteOpen} setOpen={setQuoteOpen} />
+      <Header onQuoteClick={() => setQuoteOpen(true)} />
+      <QuotePopup open={quoteOpen} setOpen={setQuoteOpen} />
 
       <section className="relative min-h-[90vh] overflow-hidden sm:min-h-screen">
-        <video autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+        >
           <source src="/videos/hero-video.mp4" type="video/mp4" />
         </video>
 
@@ -65,7 +73,12 @@ export default function HomePage() {
         <div className="container grid items-center gap-10 lg:grid-cols-2 lg:gap-12">
           <MotionWrap>
             <div className="relative h-[320px] overflow-hidden bg-[#e8ded0] sm:h-[420px]">
-              <Image src="/images/about/studio-1.jpg" alt="About Bobby Media" fill className="object-cover" />
+              <Image
+                src="/images/about/studio-1.jpg"
+                alt="About Bobby Media"
+                fill
+                className="object-cover"
+              />
             </div>
           </MotionWrap>
 
@@ -84,99 +97,99 @@ export default function HomePage() {
               cinematic style and careful editing.
             </p>
 
-            <Link href="/about" className="mt-8 inline-block bg-[#1f1a17] px-8 py-4 text-xs font-bold uppercase tracking-widest text-white">
+            <Link
+              href="/about"
+              className="mt-8 inline-block bg-[#1f1a17] px-8 py-4 text-xs font-bold uppercase tracking-widest text-white"
+            >
               More About Us
             </Link>
           </MotionWrap>
         </div>
       </section>
 
-      <section className="px-4 py-16 sm:px-6 sm:py-20">
+      <FeaturedWorksSlider />
+
+      <section
+        id="services"
+        className="scroll-mt-28 px-4 py-16 sm:px-6 sm:py-20"
+      >
         <div className="container text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-[#b89b63]">
-            Portfolio
-          </p>
+          <a
+            href="#service-cards"
+            className="mb-14 inline-block rounded-full bg-[#1f1a17] px-7 py-3 text-xs font-bold uppercase tracking-[0.28em] text-white"
+          >
+            Explore
+          </a>
 
           <h2 className="serif text-4xl text-[#1f1a17] sm:text-6xl">
-            Featured Work
+            Why Bobby Media?
           </h2>
 
-          <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-4">
-            {gallery.slice(0, 5).map((item, index) => (
-              <MotionWrap
-                key={`${item.title}-${index}`}
-                delay={index * 0.05}
-                className="group relative aspect-[3/4] overflow-hidden bg-[#e8ded0]"
-              >
-                <Image
-                  src={item.img}
-                  alt={item.title}
-                  fill
-                  unoptimized
-                  className="object-cover transition duration-700 group-hover:scale-110"
-                />
-              </MotionWrap>
+          <div className="mt-14 grid gap-10 text-left md:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                title: 'Creative Young Team',
+                desc: 'Our team comprises passionate photographers and cinematographers who bring creativity, energy and fresh ideas to every project. With years of experience and an eye for detail, we ensure every moment is captured beautifully and transformed into timeless memories.',
+              },
+              {
+                title: 'Premium Equipment',
+                desc: 'We invest in state-of-the-art cameras, lenses, lighting systems and editing technology to deliver exceptional quality. Every photograph and video is crafted with clarity, precision and cinematic excellence for stunning visual results.',
+              },
+              {
+                title: 'Flexible Packages',
+                desc: 'Whether you are planning an intimate celebration, birthday event, outdoor shoot or grand wedding, we offer customizable packages that suit different budgets and requirements without compromising on quality or creativity.',
+              },
+              {
+                title: 'Reliability and Trust',
+                desc:  'We understand the value of your special moments. Our commitment to professionalism, punctuality and customer satisfaction ensures a smooth experience from booking to final delivery, giving you complete peace of mind.',
+              },
+            ].map((item) => (
+              <div key={item.title}>
+                <h3 className="text-lg font-bold text-[#1f1a17] sm:text-xl">
+                  {item.title}
+                </h3>
+
+                <p className="mt-5 text-sm leading-7 text-[#4f463f] sm:mt-8 sm:leading-8">
+                  {item.desc}
+                </p>
+              </div>
             ))}
           </div>
-
-          <Link href="/gallery" className="mt-10 inline-block bg-[#1f1a17] px-8 py-4 text-xs font-bold uppercase tracking-widest text-white">
-            View Full Gallery
-          </Link>
         </div>
       </section>
 
-      <section className="px-4 py-16 sm:px-6 sm:py-20">
-        <div className="container text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-[#b89b63]">
-            Services
-          </p>
-
-          <h2 className="serif text-4xl text-[#1f1a17] sm:text-6xl">
-            What We Offer
-          </h2>
-
-          <div className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
-            {[
-              { icon: Heart, title: 'Weddings' },
-              { icon: Video, title: 'Cinematography' },
-              { icon: Cake, title: 'Birthdays' },
-              { icon: Mountain, title: 'Outdoor Shoots' },
-              { icon: Plane, title: 'Drone Coverage' },
-            ].map((item, index) => {
-              const Icon = item.icon;
-
-              return (
-                <MotionWrap key={item.title} delay={index * 0.05} className="border-[#d8cbbd] px-4 sm:border-r sm:px-6 sm:last:border-r-0">
-                  <Icon className="mx-auto text-[#b89b63]" size={32} />
-                  <h3 className="mt-5 text-sm font-bold uppercase tracking-widest text-[#1f1a17]">
-                    {item.title}
-                  </h3>
-                  <p className="mt-3 text-xs leading-6 text-[#6b625a]">
-                    Premium photography service crafted for beautiful memories.
-                  </p>
-                </MotionWrap>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-16 sm:px-6 sm:py-20">
+      <section
+        id="service-cards"
+        className="scroll-mt-28 px-4 py-16 sm:px-6 sm:py-20"
+      >
         <div className="container grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {services.slice(0, 6).map((service, index) => (
-            <MotionWrap key={`${service.title}-${index}`} delay={index * 0.05} className="overflow-hidden bg-white shadow-sm">
+            <MotionWrap
+              key={`${service.title}-${index}`}
+              delay={index * 0.05}
+              className="overflow-hidden bg-white shadow-sm"
+            >
               <div className="relative h-[280px] overflow-hidden sm:h-[350px]">
-                <Image src={service.img} alt={service.title} fill unoptimized className="object-cover object-center" />
+                <Image
+                  src={service.img}
+                  alt={service.title}
+                  fill
+                  unoptimized
+                  className="object-cover object-center"
+                />
               </div>
 
               <div className="p-5 sm:p-7">
                 <Camera className="text-[#b89b63]" />
+
                 <h3 className="serif mt-5 text-2xl text-[#1f1a17] sm:text-3xl">
                   {service.title}
                 </h3>
+
                 <p className="mt-3 text-sm leading-7 text-[#6b625a]">
                   {service.desc}
                 </p>
+
                 <p className="mt-4 font-bold text-[#b89b63]">
                   {service.price}
                 </p>
@@ -188,7 +201,13 @@ export default function HomePage() {
 
       <section className="px-4 py-16 sm:px-6 sm:py-20">
         <div className="container relative overflow-hidden px-6 py-16 text-white sm:px-8 sm:py-20">
-          <Image src="/images/connect/letsconnect.png" alt="Book Bobby Media" fill className="object-cover object-top" />
+          <Image
+            src="/images/connect/letsconnect.png"
+            alt="Book Bobby Media"
+            fill
+            className="object-cover object-top"
+          />
+
           <div className="absolute inset-0 bg-black/50" />
 
           <div className="relative z-10 max-w-2xl">
@@ -208,7 +227,10 @@ export default function HomePage() {
                 Get In Touch
               </button>
 
-              <a href="tel:+918148645508" className="inline-flex items-center justify-center gap-2 border border-white/40 px-8 py-4 text-xs font-bold uppercase tracking-widest text-white">
+              <a
+                href="tel:+918148645508"
+                className="inline-flex items-center justify-center gap-2 border border-white/40 px-8 py-4 text-xs font-bold uppercase tracking-widest text-white"
+              >
                 <Phone size={16} />
                 Call Now
               </a>
@@ -224,13 +246,27 @@ export default function HomePage() {
 
 function Footer() {
   return (
-    <footer className="border-t border-[#ded3c4] bg-[#f8f5f1] px-4 py-10 text-center sm:px-6">
-      <h3 className="serif text-3xl tracking-widest text-[#1f1a17]">
+    <footer className="border-t border-[#ded3c4] bg-[#f8f5f1] px-4 py-12 text-center sm:px-6">
+      <div className="flex justify-center">
+        <Image
+          src="/images/logo/logo.jpeg"
+          alt="Bobby Media"
+          width={90}
+          height={90}
+          className="h-16 w-16 rounded-full border-2 border-[#C9A84C] object-cover sm:h-20 sm:w-20"
+        />
+      </div>
+
+      <h3 className="mt-4 serif text-3xl tracking-widest text-[#1f1a17]">
         Bobby Media
       </h3>
 
       <p className="mt-2 text-xs uppercase tracking-[0.35em] text-[#b89b63]">
         Photo Studio
+      </p>
+
+      <p className="mt-4 text-xl italic text-[#6b625a]">
+        Choose Happiness
       </p>
 
       <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm text-[#6b625a] sm:gap-6">
@@ -241,7 +277,8 @@ function Footer() {
       </div>
 
       <p className="mt-8 text-xs text-[#8a8178]">
-        © {new Date().getFullYear()} Bobby Media Photo Studio. All rights reserved.
+        © {new Date().getFullYear()} Bobby Media Photo Studio. All rights
+        reserved.
       </p>
     </footer>
   );
