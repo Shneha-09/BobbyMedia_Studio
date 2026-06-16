@@ -22,8 +22,12 @@ export default function GalleryGrid() {
   const [cat, setCat] = useState('All');
   const [active, setActive] = useState(null);
   const [items, setItems] = useState(gallery);
+  const [likedPhotos, setLikedPhotos] = useState([]);
 
   useEffect(() => {
+    const savedLikes = JSON.parse(localStorage.getItem('likedPhotos') || '[]');
+    setLikedPhotos(savedLikes);
+
     async function fetchPhotos() {
       try {
         const res = await fetch('/api/photos');
@@ -48,15 +52,15 @@ export default function GalleryGrid() {
     fetchPhotos();
   }, []);
 
-  async function handleLike(photoId) {
-    try {
-      const likedPhotos = JSON.parse(
-        localStorage.getItem('likedPhotos') || '[]'
-      );
+  async function handleLike(e, photoId) {
+    e.stopPropagation();
 
+    try {
       if (likedPhotos.includes(photoId)) {
         return;
       }
+
+      setLikedPhotos((prev) => [...prev, photoId]);
 
       setItems((prev) =>
         prev.map((item) =>
@@ -78,6 +82,8 @@ export default function GalleryGrid() {
       const data = await res.json();
 
       if (!data.success) {
+        setLikedPhotos((prev) => prev.filter((id) => id !== photoId));
+
         setItems((prev) =>
           prev.map((item) =>
             item._id === photoId
@@ -114,41 +120,43 @@ export default function GalleryGrid() {
 
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 lg:gap-5">
-          {filteredItems.map((item, i) => (
-            <div
-              key={`${item.img}-${i}`}
-              className="group w-full overflow-hidden rounded-xl bg-white shadow-md sm:rounded-2xl"
-            >
-              <button onClick={() => setActive(item)} className="w-full">
-                <div className="relative aspect-square w-full overflow-hidden">
-                  <Image
-                    src={item.img}
-                    alt={item.title}
-                    fill
-                    unoptimized
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    className="object-cover transition duration-700 group-hover:scale-110"
-                  />
-                </div>
-              </button>
+          {filteredItems.map((item, i) => {
+            const isLiked = item._id && likedPhotos.includes(item._id);
 
-              {item._id && (
-                <div className="flex items-center justify-center py-3">
+            return (
+              <div
+                key={`${item.img}-${i}`}
+                onClick={() => setActive(item)}
+                className="group relative aspect-square w-full cursor-pointer overflow-hidden rounded-xl bg-[#e8ded0] shadow-md sm:rounded-2xl"
+              >
+                <Image
+                  src={item.img}
+                  alt={item.title}
+                  fill
+                  unoptimized
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover transition duration-700 group-hover:scale-110"
+                />
+
+                {item._id && (
                   <button
-                    onClick={() => handleLike(item._id)}
-                    className="flex items-center gap-2 text-sm font-semibold text-red-500 transition hover:scale-110 active:scale-125"
+                    onClick={(e) => handleLike(e, item._id)}
+                    className={`absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full border border-white/90 backdrop-blur-md transition active:scale-125 ${
+                      isLiked
+                        ? 'bg-white text-red-500'
+                        : 'bg-black/20 text-white hover:bg-white hover:text-red-500'
+                    }`}
                   >
                     <Heart
                       size={18}
-                      fill="currentColor"
-                      className="transition duration-300"
+                      fill={isLiked ? 'currentColor' : 'none'}
+                      strokeWidth={2.4}
                     />
-                    <span>{item.likes || 0}</span>
                   </button>
-                </div>
-              )}
-            </div>
-          ))}
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 

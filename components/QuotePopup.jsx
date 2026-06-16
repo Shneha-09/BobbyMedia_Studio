@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, Sparkles, Check } from 'lucide-react';
 
@@ -60,8 +60,7 @@ const otherEventBudgets = [
   'Custom Budget',
 ];
 
-export default function QuotePopup() {
-  const [open, setOpen] = useState(false);
+export default function QuotePopup({ open, setOpen }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
@@ -78,17 +77,15 @@ export default function QuotePopup() {
     email: '',
   });
 
-  useEffect(() => {
-    const t = setTimeout(() => setOpen(true), 500);
-    return () => clearTimeout(t);
-  }, []);
-
   function getBudgets() {
     if (form.weddingType === 'Destination Wedding') return destinationBudgets;
+
     if (form.ceremonyType === 'Engagement, Wedding & Reception') {
       return fullWeddingBudgets;
     }
+
     if (form.eventCategory === 'Wedding Ceremony') return normalBudgets;
+
     return otherEventBudgets;
   }
 
@@ -158,7 +155,10 @@ Custom Budget: ${form.customBudget || '-'}
         '_blank'
       );
 
-      setTimeout(() => setOpen(false), 1500);
+      setTimeout(() => {
+        setOpen(false);
+        setStep(1);
+      }, 1500);
     } else {
       alert((await res.json()).error || 'Something went wrong');
     }

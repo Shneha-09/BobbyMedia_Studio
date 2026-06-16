@@ -13,9 +13,14 @@ const links = [
   ['Contact', '/contact'],
 ];
 
-export default function Header() {
+export default function Header({ onQuoteClick }) {
   const [open, setOpen] = useState(false);
   const path = usePathname();
+
+  function handleQuoteClick() {
+    setOpen(false);
+    if (onQuoteClick) onQuoteClick();
+  }
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-black/45 backdrop-blur-xl">
@@ -42,12 +47,12 @@ export default function Header() {
             </Link>
           ))}
 
-          <Link
-            href="/?quote=true"
+          <button
+            onClick={handleQuoteClick}
             className="btn-gold rounded-full px-6 py-3 text-sm"
           >
             Get Quote
-          </Link>
+          </button>
         </div>
 
         <button
@@ -76,13 +81,12 @@ export default function Header() {
             </Link>
           ))}
 
-          <Link
-            onClick={() => setOpen(false)}
-            href="/?quote=true"
-            className="mt-3 block rounded-xl bg-[#C9A84C] px-4 py-3 text-center font-bold text-black"
+          <button
+            onClick={handleQuoteClick}
+            className="mt-3 block w-full rounded-xl bg-[#C9A84C] px-4 py-3 text-center font-bold text-black"
           >
             Get Quote
-          </Link>
+          </button>
         </div>
       )}
     </header>
