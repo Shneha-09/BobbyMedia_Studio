@@ -5,6 +5,11 @@ const PhotoSchema = new mongoose.Schema(
     category: String,
     imageUrl: String,
     publicId: String,
+
+    likes: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
