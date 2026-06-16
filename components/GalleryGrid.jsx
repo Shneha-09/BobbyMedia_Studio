@@ -55,42 +55,40 @@ export default function GalleryGrid() {
   async function handleLike(e, photoId) {
     e.stopPropagation();
 
+    const isAlreadyLiked = likedPhotos.includes(photoId);
+
+    const updatedLikedPhotos = isAlreadyLiked
+      ? likedPhotos.filter((id) => id !== photoId)
+      : [...likedPhotos, photoId];
+
+    setLikedPhotos(updatedLikedPhotos);
+
+    setItems((prev) =>
+      prev.map((item) =>
+        item._id === photoId
+          ? {
+              ...item,
+              likes: isAlreadyLiked
+                ? Math.max((item.likes || 1) - 1, 0)
+                : (item.likes || 0) + 1,
+            }
+          : item
+      )
+    );
+
+    localStorage.setItem('likedPhotos', JSON.stringify(updatedLikedPhotos));
+
     try {
-      if (likedPhotos.includes(photoId)) {
-        return;
-      }
-
-      setLikedPhotos((prev) => [...prev, photoId]);
-
-      setItems((prev) =>
-        prev.map((item) =>
-          item._id === photoId
-            ? { ...item, likes: (item.likes || 0) + 1 }
-            : item
-        )
-      );
-
-      localStorage.setItem(
-        'likedPhotos',
-        JSON.stringify([...likedPhotos, photoId])
-      );
-
       const res = await fetch(`/api/photos/${photoId}/like`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: isAlreadyLiked ? 'unlike' : 'like' }),
       });
 
       const data = await res.json();
 
       if (!data.success) {
-        setLikedPhotos((prev) => prev.filter((id) => id !== photoId));
-
-        setItems((prev) =>
-          prev.map((item) =>
-            item._id === photoId
-              ? { ...item, likes: Math.max((item.likes || 1) - 1, 0) }
-              : item
-          )
-        );
+        console.error('Like update failed');
       }
     } catch (error) {
       console.error('Like error:', error);
@@ -134,6 +132,7 @@ export default function GalleryGrid() {
                   alt={item.title}
                   fill
                   unoptimized
+                  priority={i < 8}
                   sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   className="object-cover transition duration-700 group-hover:scale-110"
                 />

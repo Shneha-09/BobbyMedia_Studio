@@ -10,7 +10,7 @@ import MotionWrap from './MotionWrap';
 import { gallery, services } from './data';
 
 export default function HomePage() {
-  const [quoteOpen, setQuoteOpen] = useState(false);
+  const [quoteOpen, setQuoteOpen] = useState(true);
 
   return (
     <main className="bg-[#f8f5f1] text-[#1f1a17]">

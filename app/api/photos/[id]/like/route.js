@@ -6,6 +6,7 @@ export async function POST(req, context) {
   await connectDB();
 
   const { id } = await context.params;
+  const body = await req.json();
 
   const photo = await Photo.findById(id);
 
@@ -16,7 +17,12 @@ export async function POST(req, context) {
     );
   }
 
-  photo.likes = (photo.likes || 0) + 1;
+  if (body.action === 'unlike') {
+    photo.likes = Math.max((photo.likes || 0) - 1, 0);
+  } else {
+    photo.likes = (photo.likes || 0) + 1;
+  }
+
   await photo.save();
 
   return NextResponse.json({
