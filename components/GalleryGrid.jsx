@@ -55,9 +55,21 @@ export default function GalleryGrid() {
       );
 
       if (likedPhotos.includes(photoId)) {
-        alert('You already liked this photo ❤️');
         return;
       }
+
+      setItems((prev) =>
+        prev.map((item) =>
+          item._id === photoId
+            ? { ...item, likes: (item.likes || 0) + 1 }
+            : item
+        )
+      );
+
+      localStorage.setItem(
+        'likedPhotos',
+        JSON.stringify([...likedPhotos, photoId])
+      );
 
       const res = await fetch(`/api/photos/${photoId}/like`, {
         method: 'POST',
@@ -65,16 +77,13 @@ export default function GalleryGrid() {
 
       const data = await res.json();
 
-      if (data.success) {
+      if (!data.success) {
         setItems((prev) =>
           prev.map((item) =>
-            item._id === photoId ? { ...item, likes: data.likes } : item
+            item._id === photoId
+              ? { ...item, likes: Math.max((item.likes || 1) - 1, 0) }
+              : item
           )
-        );
-
-        localStorage.setItem(
-          'likedPhotos',
-          JSON.stringify([...likedPhotos, photoId])
         );
       }
     } catch (error) {
@@ -127,9 +136,13 @@ export default function GalleryGrid() {
                 <div className="flex items-center justify-center py-3">
                   <button
                     onClick={() => handleLike(item._id)}
-                    className="flex items-center gap-2 text-sm font-semibold text-red-500 transition hover:scale-110"
+                    className="flex items-center gap-2 text-sm font-semibold text-red-500 transition hover:scale-110 active:scale-125"
                   >
-                    <Heart size={18} fill="currentColor" />
+                    <Heart
+                      size={18}
+                      fill="currentColor"
+                      className="transition duration-300"
+                    />
                     <span>{item.likes || 0}</span>
                   </button>
                 </div>
