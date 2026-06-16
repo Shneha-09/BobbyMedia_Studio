@@ -16,20 +16,9 @@ const initialCategories = [
   'Other Photo Services',
 ];
 
-const initialPhotos = [
-  { id: 1, category: 'Birthday Photography', img: '/images/gallery/birthday.jpg' },
-  { id: 2, category: 'Wedding', img: '/images/gallery/bride.jpg' },
-  { id: 3, category: 'Outdoor Photoshoot', img: '/images/gallery/outdoor.jpg' },
-  { id: 4, category: 'Wedding Cinematography', img: '/images/gallery/wedding cine.jpg' },
-  { id: 5, category: 'Event Photography', img: '/images/gallery/event.jpg' },
-  { id: 6, category: 'Drone Photography', img: '/images/gallery/drone.jpg' },
-  { id: 7, category: 'Album Design', img: '/images/services/album.png' },
-  { id: 8, category: 'Other Photo Services', img: '/images/gallery/other servies.jpg' },
-];
-
 export default function AdminPhotos() {
   const [categories, setCategories] = useState(initialCategories);
-  const [photos, setPhotos] = useState(initialPhotos);
+  const [photos, setPhotos] = useState([]);
   const [active, setActive] = useState('All');
   const [showUpload, setShowUpload] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
@@ -43,32 +32,32 @@ export default function AdminPhotos() {
   const dropRef = useRef(null);
 
   const allCategories = ['All', ...categories];
-
   const filtered =
     active === 'All' ? photos : photos.filter((p) => p.category === active);
 
   useEffect(() => {
-    async function fetchPhotos() {
-      try {
-        const res = await fetch('/api/photos');
-        const data = await res.json();
-
-        if (data.success) {
-          const dbPhotos = data.photos.map((photo) => ({
-            id: photo._id,
-            category: photo.category,
-            img: photo.imageUrl,
-          }));
-
-          setPhotos(dbPhotos);
-        }
-      } catch (error) {
-        console.error('Fetch photos error:', error);
-      }
-    }
-
     fetchPhotos();
   }, []);
+
+  async function fetchPhotos() {
+    try {
+      const res = await fetch('/api/photos');
+      const data = await res.json();
+
+      if (data.success) {
+        const dbPhotos = data.photos.map((photo) => ({
+          id: photo._id,
+          category: photo.category,
+          img: photo.imageUrl,
+          likes: photo.likes || 0,
+        }));
+
+        setPhotos(dbPhotos);
+      }
+    } catch (error) {
+      console.error('Fetch photos error:', error);
+    }
+  }
 
   function handleDrop(e) {
     e.preventDefault();
@@ -114,9 +103,7 @@ export default function AdminPhotos() {
           : []
         : bulkFiles;
 
-    if (files.length === 0) {
-      return alert('Please choose photo');
-    }
+    if (files.length === 0) return alert('Please choose photo');
 
     setUploading(true);
     const uploadedPhotos = [];
@@ -148,6 +135,7 @@ export default function AdminPhotos() {
           id: data.photo._id,
           category: data.photo.category,
           img: data.photo.imageUrl,
+          likes: data.photo.likes || 0,
         });
       }
 
@@ -167,11 +155,6 @@ export default function AdminPhotos() {
 
   async function deletePhoto(id) {
     if (!confirm('Delete this photo?')) return;
-
-    if (typeof id === 'number') {
-      setPhotos(photos.filter((p) => p.id !== id));
-      return;
-    }
 
     const res = await fetch(`/api/photos?id=${id}`, {
       method: 'DELETE',
@@ -247,25 +230,18 @@ export default function AdminPhotos() {
             </div>
 
             <div className="mb-3 flex justify-end">
-              <div className="relative w-full sm:w-[240px]">
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="h-11 w-full appearance-none rounded-xl border border-[#e0e0e0] bg-white px-4 pr-10 text-sm text-[#111] outline-none"
-                >
-                  <option value="">Select category</option>
-
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#555]">
-                  ▾
-                </span>
-              </div>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="h-11 w-full rounded-xl border border-[#e0e0e0] bg-white px-4 text-sm text-[#111] outline-none sm:w-[240px]"
+              >
+                <option value="">Select category</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {uploadMode === 'single' ? (
@@ -306,7 +282,9 @@ export default function AdminPhotos() {
                   accept="image/*"
                   multiple
                   className="hidden"
-                  onChange={(e) => setBulkFiles(Array.from(e.target.files || []))}
+                  onChange={(e) =>
+                    setBulkFiles(Array.from(e.target.files || []))
+                  }
                 />
 
                 <p className="text-sm font-medium text-[#555]">
@@ -403,6 +381,10 @@ export default function AdminPhotos() {
                 alt={photo.category}
                 className="h-full w-full object-cover"
               />
+
+              <div className="absolute bottom-2 left-2 rounded-full bg-black/75 px-3 py-1 text-xs font-bold text-white shadow-lg">
+                ❤️ {photo.likes || 0} Likes
+              </div>
 
               <button
                 type="button"
