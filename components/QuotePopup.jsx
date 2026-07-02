@@ -202,7 +202,7 @@ function getBudgets() {
     if (res.ok) {
       setSuccess('Thank you! We will contact you soon.');
 
-      const whatsappNumber = '919384155672';
+      const whatsappNumber = '917373402224';
 
       const message = `
 New Quote Enquiry

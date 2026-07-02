@@ -220,15 +220,15 @@ export default function HomePage() {
             </p>
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:gap-4">
-              <button
-                onClick={() => setQuoteOpen(true)}
+              <Link
+                href="/contact"
                 className="bg-white px-8 py-4 text-center text-xs font-bold uppercase tracking-widest text-[#1f1a17]"
               >
                 Get In Touch
-              </button>
+              </Link>
 
               <a
-                href="tel:+918148645508"
+                href="tel:+917373402224"
                 className="inline-flex items-center justify-center gap-2 border border-white/40 px-8 py-4 text-xs font-bold uppercase tracking-widest text-white"
               >
                 <Phone size={16} />
@@ -274,6 +274,21 @@ function Footer() {
         <Link href="/services">Services</Link>
         <Link href="/gallery">Gallery</Link>
         <Link href="/contact">Contact</Link>
+      </div>
+      <div className="mt-6 space-y-2 text-sm text-[#6b625a]">
+        <a
+          href="mailto:bobbybobbyofficial@gmail.com"
+          className="block hover:text-[#C9A84C] transition"
+        >
+          📧 bobbybobbyofficial@gmail.com
+        </a>
+
+        <a
+          href="tel:+918148645508"
+          className="block hover:text-[#C9A84C] transition"
+        >
+          📞 +91 73734 02224
+        </a>
       </div>
 
       <p className="mt-8 text-xs text-[#8a8178]">

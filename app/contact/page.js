@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import PageHero from '@/components/PageHero';
-import { Camera, MapPin, MessageCircle, Phone } from 'lucide-react';
-
+import { Camera, MapPin, MessageCircle, Phone, Mail } from 'lucide-react';
 export default function Contact() {
   const [f, setF] = useState({
     name: '',
@@ -121,6 +120,18 @@ export default function Contact() {
                 <Phone className="text-[#C9A84C]" />
                 Call
               </a>
+              <a
+                  href="mailto:bobbybobbyofficial@gmail.com"
+                  className="flex items-center gap-3 rounded-2xl border border-[#d8cbbd] bg-white p-4 text-[#1f1a17] transition hover:border-[#b89b63]"
+                >
+                  <Mail className="text-[#C9A84C]" />
+                  <div>
+                    <p className="font-medium">Email</p>
+                    <p className="text-sm text-gray-500">
+                      bobbybobbyofficial@gmail.com
+                    </p>
+                  </div>
+                </a>
             </div>
           </div>
         </div>
