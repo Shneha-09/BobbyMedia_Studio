@@ -5,11 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, Sparkles, Check } from 'lucide-react';
 
 const events = [
-  'Wedding Ceremony',
-  'Baby Shoots',
-  'Outdoor Pre/Post Shoot',
-  'Birthday Parties',
+  'Wedding',
   'Baby Shower',
+  'Birthday Party',
+  'Outdoor',
+  'Baby Shoot',
 ];
 
 const weddingTypes = [
@@ -22,7 +22,7 @@ const weddingTypes = [
 const ceremonyTypes = [
   'Flowering Ceremony',
   'Engagement Ceremony',
-  'Engagement, Wedding & Reception',
+  'Wedding & Reception',
   'Above All',
 ];
 
@@ -72,54 +72,88 @@ export default function QuotePopup({ open, setOpen }) {
     destinationDays: '',
     priceCategory: '',
     customBudget: '',
+    eventDate: '',
     name: '',
     mobile: '',
     email: '',
   });
 
-  function getBudgets() {
-    if (form.weddingType === 'Destination Wedding') return destinationBudgets;
-
-    if (form.ceremonyType === 'Engagement, Wedding & Reception') {
-      return fullWeddingBudgets;
-    }
-
-    if (form.eventCategory === 'Wedding Ceremony') return normalBudgets;
-
-    return otherEventBudgets;
+function getBudgets() {
+  // Destination Wedding
+  if (form.weddingType === 'Destination Wedding') {
+    return destinationBudgets;
   }
+
+  // Above All uses full wedding package
+  if (form.ceremonyType === 'Above All') {
+    return fullWeddingBudgets;
+  }
+
+  // Wedding & Reception uses full wedding package
+  if (form.ceremonyType === 'Wedding & Reception') {
+    return fullWeddingBudgets;
+  }
+
+  // Normal wedding packages
+  if (form.eventCategory === 'Wedding') {
+    return normalBudgets;
+  }
+
+  // Baby Shoot / Outdoor / Birthday / Baby Shower
+  return otherEventBudgets;
+}
 
   function choose(key, value) {
-    setForm((f) => ({ ...f, [key]: value }));
+  setForm((prev) => ({
+    ...prev,
+    [key]: value,
+  }));
 
-    if (key === 'eventCategory') {
-      setStep(value === 'Wedding Ceremony' ? 2 : 4);
-    }
+  switch (key) {
+    case 'eventCategory':
+      if (value === 'Wedding') {
+        setStep(2); // Religion
+      } else {
+        setStep(4); // Budget
+      }
+      break;
 
-    if (key === 'weddingType') {
-      setStep(value === 'Destination Wedding' ? 6 : 3);
-    }
+    case 'weddingType':
+      if (value === 'Destination Wedding') {
+        setStep(6); // Days
+      } else {
+        setStep(3); // Ceremony
+      }
+      break;
 
-    if (key === 'ceremonyType') {
-      setStep(4);
-    }
+    case 'ceremonyType':
+      setStep(4); // Budget
+      break;
 
-    if (key === 'destinationDays') {
-      setStep(4);
-    }
+    case 'destinationDays':
+      setStep(4); // Budget
+      break;
 
-    if (key === 'priceCategory') {
-      setStep(5);
-    }
+    case 'priceCategory':
+      setStep(5); // Contact Form
+      break;
+
+    default:
+      break;
   }
-
+}
   async function submit(e) {
     e.preventDefault();
     setSuccess('');
 
-    if (!form.name || !form.mobile || !form.email) {
-      return alert('Please fill all required fields');
-    }
+  if (
+    !form.eventDate ||
+    !form.name ||
+    !form.mobile ||
+    !form.email
+  ) {
+    return alert('Please fill all required fields');
+  }
 
     setLoading(true);
 
@@ -134,7 +168,7 @@ export default function QuotePopup({ open, setOpen }) {
     if (res.ok) {
       setSuccess('Thank you! We will contact you soon.');
 
-      const whatsappNumber = '917373402224';
+      const whatsappNumber = '919487025305';
 
       const message = `
 New Quote Enquiry
@@ -146,6 +180,7 @@ Event: ${form.eventCategory}
 Wedding Type: ${form.weddingType || '-'}
 Ceremony Type: ${form.ceremonyType || '-'}
 Destination Days: ${form.destinationDays || '-'}
+Event Date: ${form.eventDate}
 Budget: ${form.priceCategory}
 Custom Budget: ${form.customBudget || '-'}
       `;
@@ -156,9 +191,22 @@ Custom Budget: ${form.customBudget || '-'}
       );
 
       setTimeout(() => {
-        setOpen(false);
-        setStep(1);
-      }, 1500);
+  setOpen(false);
+  setStep(1);
+
+  setForm({
+    eventCategory: '',
+    weddingType: '',
+    ceremonyType: '',
+    destinationDays: '',
+    priceCategory: '',
+    customBudget: '',
+    eventDate: '',
+    name: '',
+    mobile: '',
+    email: '',
+  });
+}, 1500);
     } else {
       alert((await res.json()).error || 'Something went wrong');
     }
@@ -286,10 +334,29 @@ Custom Budget: ${form.customBudget || '-'}
 
             {step === 5 && (
               <form onSubmit={submit} className="space-y-4">
+
+                {/* Event Date */}
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-[#111]">
+                    Event Date
+                  </label>
+
+                  <input
+                    type="date"
+                    value={form.eventDate}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) =>
+                      setForm({ ...form, eventDate: e.target.value })
+                    }
+                    className="w-full rounded-xl border border-[#d8cbbd] bg-white px-4 py-3 outline-none"
+                  />
+                </div>
+
+                {/* Custom Budget */}
                 {form.priceCategory === 'Custom Budget' && (
                   <input
                     className="input"
-                    placeholder="Custom Budget"
+                    placeholder="Enter Your Budget"
                     value={form.customBudget}
                     onChange={(e) =>
                       setForm({ ...form, customBudget: e.target.value })
@@ -317,7 +384,9 @@ Custom Budget: ${form.customBudget || '-'}
                   className="input"
                   placeholder="Email Address"
                   value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, email: e.target.value })
+                  }
                 />
 
                 <button
