@@ -211,13 +211,20 @@ Name: ${form.name}
 Mobile: ${form.mobile}
 Email: ${form.email}
 Event: ${form.eventCategory}
-Wedding Type: ${form.weddingType || '-'}
-Ceremony Type: ${form.ceremonyType || '-'}
-Destination Days: ${form.destinationDays || '-'}
+${form.eventCategory === 'Wedding' ? `Wedding Type: ${form.weddingType}` : ''}
+${form.eventCategory === 'Wedding' &&
+form.weddingType !== 'Destination Wedding'
+  ? `Ceremony Type: ${form.ceremonyType}`
+  : ''}
+${form.weddingType === 'Destination Wedding'
+  ? `Destination Days: ${form.destinationDays}`
+  : ''}
 Event Date: ${form.eventDate}
 Budget: ${form.priceCategory}
-Custom Budget: ${form.customBudget || '-'}
-      `;
+${form.priceCategory === 'Custom Budget'
+  ? `Custom Budget: ${form.customBudget}`
+  : ''}
+`;
 
       window.open(
         `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
