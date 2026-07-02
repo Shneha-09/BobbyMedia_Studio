@@ -5,57 +5,62 @@ import Photo from '@/models/Photo';
 
 export const dynamic = 'force-dynamic';
 
-// optimize image
-function optimize(url) {
-  if (!url) return url;
-  if (!url.includes('res.cloudinary.com')) return url;
-
+/* =========================
+   CLOUDINARY OPTIMIZER
+========================= */
+function optimizeCloudinaryUrl(url) {
+  if (!url || !url.includes('res.cloudinary.com')) return url;
   return url.replace(
     '/image/upload/',
-    '/image/upload/f_auto,q_auto,w_800/'
+    '/image/upload/f_auto,q_auto,w_600/'
   );
 }
 
-/* ---------------- GET (FAST + FILTER FIX) ---------------- */
+/* =========================
+   GET PHOTOS (GALLERY)
+========================= */
 export async function GET() {
   try {
     await connectDB();
 
-    const photos = await Photo.find({ type: "gallery" })
+    const photos = await Photo.find({ type: 'gallery' })
       .select('category imageUrl publicId likes createdAt')
       .sort({ createdAt: -1 })
       .lean();
 
-    const data = photos.map((p) => ({
-      _id: p._id,
-      category: p.category,
-      imageUrl: optimize(p.imageUrl),
-      likes: p.likes || 0,
+    const optimizedPhotos = photos.map((p) => ({
+      ...p,
+      imageUrl: optimizeCloudinaryUrl(p.imageUrl),
     }));
 
-    return NextResponse.json({ success: true, photos: data });
+    return NextResponse.json({
+      success: true,
+      photos: optimizedPhotos,
+    });
+  } catch (error) {
+    console.error('PHOTO_FETCH_ERROR:', error);
 
-  } catch (err) {
-    console.log(err);
     return NextResponse.json(
-      { success: false, error: "fetch failed" },
+      { success: false, error: 'Failed to fetch photos' },
       { status: 500 }
     );
   }
 }
 
-/* ---------------- POST ---------------- */
+/* =========================
+   POST (SINGLE UPLOAD ONLY)
+========================= */
 export async function POST(req) {
   try {
     await connectDB();
 
     const formData = await req.formData();
-    const category = formData.get("category");
-    const file = formData.get("file");
+    const category = formData.get('category');
+    const file = formData.get('file');
 
     if (!category || !file) {
       return NextResponse.json(
-        { success: false, error: "missing fields" },
+        { success: false, error: 'Category and file required' },
         { status: 400 }
       );
     }
@@ -65,8 +70,16 @@ export async function POST(req) {
     const uploaded = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload_stream(
         {
-          folder: "photos",
-          resource_type: "image",
+          folder: 'bobby_media_studio/photos',
+          resource_type: 'image',
+          transformation: [
+            {
+              width: 1200,
+              crop: 'limit',
+              quality: 'auto',
+              fetch_format: 'auto',
+            },
+          ],
         },
         (err, result) => {
           if (err) reject(err);
@@ -77,35 +90,48 @@ export async function POST(req) {
 
     const photo = await Photo.create({
       category,
-      imageUrl: uploaded.secure_url,
+      imageUrl: optimizeCloudinaryUrl(uploaded.secure_url),
       publicId: uploaded.public_id,
       likes: 0,
-      type: "gallery",
+      type: 'gallery',
     });
 
-    return NextResponse.json({ success: true, photo });
+    return NextResponse.json({
+      success: true,
+      photo,
+    });
+  } catch (error) {
+    console.error('PHOTO_UPLOAD_ERROR:', error);
 
-  } catch (err) {
-    console.log(err);
     return NextResponse.json(
-      { success: false, error: "upload failed" },
+      { success: false, error: error.message },
       { status: 500 }
     );
   }
 }
 
-/* ---------------- DELETE ---------------- */
+/* =========================
+   DELETE PHOTO
+========================= */
 export async function DELETE(req) {
   try {
     await connectDB();
 
-    const id = new URL(req.url).searchParams.get("id");
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: 'Photo id required' },
+        { status: 400 }
+      );
+    }
 
     const photo = await Photo.findById(id);
 
     if (!photo) {
       return NextResponse.json(
-        { success: false, error: "not found" },
+        { success: false, error: 'Photo not found' },
         { status: 404 }
       );
     }
@@ -117,10 +143,11 @@ export async function DELETE(req) {
     await Photo.findByIdAndDelete(id);
 
     return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('PHOTO_DELETE_ERROR:', error);
 
-  } catch (err) {
     return NextResponse.json(
-      { success: false, error: "delete failed" },
+      { success: false, error: 'Photo delete failed' },
       { status: 500 }
     );
   }

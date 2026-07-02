@@ -270,25 +270,27 @@ export default function AdminPhotos() {
                 }}
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={handleDrop}
-                onClick={() => dropRef.current?.querySelector('input')?.click()}
                 className={`mb-3 flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-10 text-center transition ${
                   isDragging
                     ? 'border-[#07142a] bg-[#f0f4ff]'
                     : 'border-[#b8b8b8] bg-white'
                 }`}
+                onClick={() => document.getElementById('bulkInput').click()}
               >
                 <input
+                  id="bulkInput"
                   type="file"
                   accept="image/*"
-                  multiple
+                  multiple   // ✅ VERY IMPORTANT
                   className="hidden"
-                  onChange={(e) =>
-                    setBulkFiles(Array.from(e.target.files || []))
-                  }
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files || []);
+                    setBulkFiles(files);
+                  }}
                 />
 
                 <p className="text-sm font-medium text-[#555]">
-                  📁 Click or drag &amp; drop images here
+                  📁 Click or drag & drop images here
                 </p>
 
                 <p className="text-xs text-[#777]">
