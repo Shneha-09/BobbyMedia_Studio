@@ -140,17 +140,21 @@ export default function GalleryGrid() {
                 {item._id && (
                   <button
                     onClick={(e) => handleLike(e, item._id)}
-                    className={`absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full border border-white/90 backdrop-blur-md transition active:scale-125 ${
-                      isLiked
-                        ? 'bg-white text-red-500'
-                        : 'bg-black/20 text-white hover:bg-white hover:text-red-500'
-                    }`}
+                    className="absolute right-3 top-3 z-10 flex items-center gap-1 transition active:scale-110"
                   >
                     <Heart
-                      size={18}
-                      fill={isLiked ? 'currentColor' : 'none'}
-                      strokeWidth={2.4}
+                      size={22}
+                      className={`${
+                        isLiked
+                          ? 'fill-red-500 text-red-500'
+                          : 'text-white hover:text-red-500'
+                      }`}
+                      strokeWidth={2.2}
                     />
+
+                    <span className="text-sm font-semibold text-white drop-shadow-md">
+                      {item.likes || 0}
+                    </span>
                   </button>
                 )}
               </div>
