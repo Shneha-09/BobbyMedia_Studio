@@ -5,36 +5,45 @@ import Photo from '@/models/Photo';
 
 export const dynamic = 'force-dynamic';
 
+// Optimize image
 function optimizeCloudinaryUrl(url) {
   if (!url || !url.includes('res.cloudinary.com')) return url;
 
-  if (url.includes('/f_auto,q_auto,w_600/')) return url;
+  if (url.includes('f_auto,q_auto,w_600')) return url;
 
-  return url.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_600/');
+  return url.replace(
+    '/image/upload/',
+    '/image/upload/f_auto,q_auto,w_600/'
+  );
 }
 
+//
+// ✅ GET - ONLY ADMIN UPLOADED IMAGES
+//
 export async function GET() {
   try {
     await connectDB();
 
-    const photos = await Photo.find()
+    const photos = await Photo.find({
+      type: 'gallery'
+    })
       .select('category imageUrl publicId likes createdAt')
       .sort({ createdAt: -1 })
+      .limit(20)
       .lean();
 
     const optimizedPhotos = photos.map((photo) => ({
-      ...photo,
+      id: photo._id,
+      category: photo.category,
       imageUrl: optimizeCloudinaryUrl(photo.imageUrl),
+      likes: photo.likes || 0,
     }));
 
-    return NextResponse.json(
-      { success: true, photos: optimizedPhotos },
-      {
-        headers: {
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
-        },
-      }
-    );
+    return NextResponse.json({
+      success: true,
+      photos: optimizedPhotos
+    });
+
   } catch (error) {
     console.error('PHOTO_FETCH_ERROR:', error);
 
@@ -45,6 +54,9 @@ export async function GET() {
   }
 }
 
+//
+// ✅ POST - UPLOAD IMAGE (ADMIN ONLY)
+//
 export async function POST(req) {
   try {
     await connectDB();
@@ -77,7 +89,6 @@ export async function POST(req) {
                 fetch_format: 'auto',
               },
             ],
-            timeout: 120000,
           },
           (err, result) => {
             if (err) reject(err);
@@ -87,29 +98,37 @@ export async function POST(req) {
         .end(buffer);
     });
 
-    const optimizedUrl = optimizeCloudinaryUrl(uploaded.secure_url);
-
     const photo = await Photo.create({
       category,
-      imageUrl: optimizedUrl,
+      imageUrl: uploaded.secure_url,
       publicId: uploaded.public_id,
       likes: 0,
+      type: 'gallery'   // 🔥 IMPORTANT FILTER KEY
     });
 
     return NextResponse.json({
       success: true,
-      photo: photo.toObject(),
+      photo: {
+        id: photo._id,
+        category: photo.category,
+        imageUrl: photo.imageUrl,
+        likes: photo.likes
+      }
     });
+
   } catch (error) {
     console.error('PHOTO_UPLOAD_ERROR:', error);
 
     return NextResponse.json(
-      { success: false, error: error.message || 'Photo upload failed' },
+      { success: false, error: error.message },
       { status: 500 }
     );
   }
 }
 
+//
+// ✅ DELETE
+//
 export async function DELETE(req) {
   try {
     await connectDB();
@@ -140,6 +159,7 @@ export async function DELETE(req) {
     await Photo.findByIdAndDelete(id);
 
     return NextResponse.json({ success: true });
+
   } catch (error) {
     console.error('PHOTO_DELETE_ERROR:', error);
 

@@ -10,6 +10,10 @@ const PhotoSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    type: {
+      type: String,
+      default: "gallery" // gallery | featured
+    }
   },
   {
     timestamps: true,
