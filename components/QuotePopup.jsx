@@ -104,44 +104,78 @@ function getBudgets() {
 }
 
   function choose(key, value) {
-  setForm((prev) => ({
-    ...prev,
-    [key]: value,
-  }));
+      setForm((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
 
-  switch (key) {
-    case 'eventCategory':
-      if (value === 'Wedding') {
-        setStep(2); // Religion
-      } else {
-        setStep(4); // Budget
+      switch (key) {
+        case 'eventCategory':
+          if (value === 'Wedding') {
+            setStep(2); // Religion
+          } else {
+            setStep(4); // Budget
+          }
+          break;
+
+        case 'weddingType':
+          if (value === 'Destination Wedding') {
+            setStep(6); // Days
+          } else {
+            setStep(3); // Ceremony
+          }
+          break;
+
+        case 'ceremonyType':
+          setStep(4); // Budget
+          break;
+
+        case 'destinationDays':
+          setStep(4); // Budget
+          break;
+
+        case 'priceCategory':
+          setStep(5); // Contact Form
+          break;
+
+        default:
+          break;
       }
-      break;
+    }
+  function goBack() {
+    if (step === 6) {
+      setStep(2);
+      return;
+    }
 
-    case 'weddingType':
-      if (value === 'Destination Wedding') {
-        setStep(6); // Days
+    if (step === 5) {
+      setStep(4);
+      return;
+    }
+
+    if (step === 4) {
+      if (form.eventCategory === 'Wedding') {
+        if (form.weddingType === 'Destination Wedding') {
+          setStep(6);
+        } else {
+          setStep(3);
+        }
       } else {
-        setStep(3); // Ceremony
+        setStep(1);
       }
-      break;
+      return;
+    }
 
-    case 'ceremonyType':
-      setStep(4); // Budget
-      break;
+    if (step === 3) {
+      setStep(2);
+      return;
+    }
 
-    case 'destinationDays':
-      setStep(4); // Budget
-      break;
-
-    case 'priceCategory':
-      setStep(5); // Contact Form
-      break;
-
-    default:
-      break;
+    if (step === 2) {
+      setStep(1);
+    }
   }
-}
+
   async function submit(e) {
     e.preventDefault();
     setSuccess('');
@@ -168,7 +202,7 @@ function getBudgets() {
     if (res.ok) {
       setSuccess('Thank you! We will contact you soon.');
 
-      const whatsappNumber = '919487025305';
+      const whatsappNumber = '919384155672';
 
       const message = `
 New Quote Enquiry
@@ -236,7 +270,7 @@ Custom Budget: ${form.customBudget || '-'}
 
             {step > 1 && (
               <button
-                onClick={() => setStep(step - 1)}
+                onClick={goBack}
                 className="mb-5 flex items-center gap-1 text-sm font-semibold text-[#b89b63]"
               >
                 <ChevronLeft size={16} />
@@ -372,6 +406,8 @@ Custom Budget: ${form.customBudget || '-'}
                 />
 
                 <input
+                  type="tel"
+                  maxLength={10}
                   className="input"
                   placeholder="Mobile Number"
                   value={form.mobile}
