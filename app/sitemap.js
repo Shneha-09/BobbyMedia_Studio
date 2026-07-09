@@ -1,1 +1,18 @@
-export default function sitemap(){const base='https://bobby-media-photo-studio.vercel.app';return ['','/about','/services','/gallery','/contact'].map(p=>({url:base+p,lastModified:new Date()}))}
+const baseUrl = "https://bobby-media-photo-studio.vercel.app";
+
+export default function sitemap() {
+  const routes = [
+    "",
+    "/gallery",
+    "/services",
+    "/contact",
+    "/about",
+  ];
+
+  return routes.map((route) => ({
+    url: `${baseUrl}${route}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly",
+    priority: route === "" ? 1 : 0.8,
+  }));
+}
